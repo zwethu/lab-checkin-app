@@ -1,109 +1,144 @@
-
 # Smart Class Check-in & Learning Reflection App – PRD
 
 ## Problem Statement
 
-In university classes, it is difficult to confirm that students are physically present and engaged. Traditional attendance methods (paper sign-in, manual lists) only record presence and do not capture how students feel before class or what they learned after class. A simple cross-platform application is needed to record attendance with location, collect short learning reflections at the beginning and end of each class, and let students review their own recent check-in history.
+In university classes, it is difficult to confirm that students are physically
+present and engaged. Traditional attendance methods (paper sign-in, manual
+lists) only record presence and do not capture how students feel before class
+or what they learned after class. A simple cross-platform application is needed
+to record attendance with location, collect short learning reflections at the
+beginning and end of each class, and let students review their own recent
+check-in history.
 
 ## Target User
 
-- **Primary user:** University students attending a specific course (e.g., Mobile Application Development).
-- **Secondary user (indirect, out of scope for this lab):** Instructors who may later analyse attendance and reflection data.
+- **Primary user:** University students attending a specific course
+  (e.g., Mobile Application Development).
+- **Secondary user (indirect, out of scope for this lab):** Instructors who
+  may later analyse attendance and reflection data.
 
 ## Feature List
 
-1. **Student Identification**
-   - Student enters their Student ID in a text field.
-   - Student selects a class from a simple predefined list (mock classes).
+1. **Class List**
+    - Classes are fetched in real time from Firestore (`classes` collection).
+    - Each class card shows name, time, and room.
+    - Button state changes based on check-in status:
+      **Check-in → Finish Class → Completed ✓**
 
 2. **Class Check-in (Before Class)**
-   - Student taps a “Check-in Before Class” button.
-   - App records current timestamp and GPS location.
-   - App displays a short form:
-     - Topic covered in the previous class (short text).
-     - Topic the student expects to learn today (short text).
-     - Mood before class (1–5 scale with emoji labels).
+    - Student taps **"Check-in"** on a class card.
+    - App records current timestamp and GPS location (via Geolocator).
+    - Student fills in a short form:
+        - Student ID (text field)
+        - Topic covered in the previous class
+        - Topic expected to learn today
+        - Mood before class (1–5 scale with emoji labels)
+    - On submit: record is created in Firestore `checkins` collection and
+      cached in Hive (native) or Firestore state (web).
 
 3. **Class Completion (After Class)**
-   - Student taps a “Finish Class” button.
-   - App records current timestamp and GPS location again.
-   - App displays a short form:
-     - What the student learned today (short text).
-     - Feedback about the class or instructor (short text).
+    - Student taps **"Finish Class"** on the same class card.
+    - App records current timestamp and GPS location again.
+    - Student fills in:
+        - What they learned today (required)
+        - Feedback about the class or instructor (optional)
+    - On submit: existing Firestore document is updated with finish data.
 
-4. **History (Local View)**
-   - The app stores a list of the student’s recent check-ins locally on the device using Hive (or similar local storage).
-   - A simple “History” page shows recent sessions for the current Student ID: class name, date, mood before class, and a short summary of what was learned.
-   - This history is read from local storage for quick access and works even when offline.
+4. **History View**
+    - Home screen shows a scrollable history list below the class cards.
+    - Each history item shows: class name, date, mood score, student ID,
+      and what was learned.
+    - On **web**: history is loaded from Firestore via `syncFromFirestore()`
+      on app startup (Firestore is the source of truth).
+    - On **native**: history is cached in Hive for offline access and synced
+      from Firestore on startup.
 
-5. **Data Storage**
-   - All official data is stored in Cloud Firestore.
-   - One Firestore record links both the before-class check-in and the after-class completion for a student, class, and date/session.
-   - Selected fields (e.g., studentId, className, classDate, moodBefore, learnedToday) are cached locally in Hive for the history view. [web:52][web:58][web:62]
+5. **Landing Page**
+    - A standalone marketing/info page accessible at `/landing`.
+    - Describes the app features with a responsive desktop/mobile layout.
+    - "Get Started" button navigates to the main app at `/`.
 
 ## User Flow
 
-1. Student opens the app on web or Android.
-2. Student enters **Student ID** and selects a **Class** from a dropdown.
+1. Student opens the app — lands on **Home Screen** (`/`).
+2. Home screen loads today's classes from Firestore.
 3. **Before class:**
-   - Student taps **“Check-in Before Class”**.
-   - App fetches GPS location and current time.
-   - App shows the **Check-in Form** (previous topic, expected topic, mood).
-   - Student submits the form; the app creates a new record in Firestore and optionally adds a summary entry to local Hive history.
+    - Student taps **"Check-in"** on a class card → navigates to `/checkin`.
+    - App fetches GPS location and current timestamp.
+    - Student fills in the Check-in Form and submits.
+    - App saves to Firestore + Hive (native) and returns to Home.
+    - Class card button changes to **"Finish Class"**.
 4. **After class:**
-   - Student (with the same Student ID and Class) taps **“Finish Class”**.
-   - App fetches GPS location and time again.
-   - App shows the **Finish Class Form** (what I learned, feedback).
-   - Student submits the form; the app updates the existing Firestore record and updates the corresponding local history entry.
-5. **History view (optional for student):**
-   - Student taps a **“History”** button.
-   - App reads recent session summaries from Hive and displays them in a simple list.
-
-(For this lab, we assume simple mock classes and a single active session per class per day.)
+    - Student taps **"Finish Class"** → navigates to `/finish`.
+    - App fetches GPS location and timestamp.
+    - Student fills in the Finish Class Form and submits.
+    - App updates the Firestore document and returns to Home.
+    - Class card button changes to **"Completed ✓"** (disabled).
+5. **History:**
+    - Visible on Home Screen below class cards.
+    - Loaded from Firestore on startup; cached in Hive on native.
 
 ## Data Fields
 
-Firestore collection: `checkins`
+### Firestore collection: `classes`
 
-Each document (one per student per class per session) contains:
+| Field | Type | Description |
+|---|---|---|
+| `name` | string | Class name |
+| `time` | string | Class time (e.g. "09:00–12:00") |
+| `room` | string | Room number |
 
-- `id` (auto-generated)
-- `studentId` (string)
-- `className` (string, e.g. `"Mobile Application Development"`)
-- `classDate` (timestamp or date-only)
+### Firestore collection: `checkins`
 
-**Before class (check-in):**
-- `checkinTime` (timestamp)
-- `checkinLat` (double)
-- `checkinLng` (double)
-- `previousTopic` (string)
-- `expectedTopic` (string)
-- `moodBefore` (int, 1–5)
+Each document (one per student per class per session):
 
-**After class (completion):**
-- `finishTime` (timestamp, optional until submitted)
-- `finishLat` (double, optional)
-- `finishLng` (double, optional)
-- `learnedToday` (string, optional)
-- `classFeedback` (string, optional)
+| Field | Type | Description |
+|---|---|---|
+| `classId` | string | Reference to class document ID |
+| `className` | string | Class name |
+| `studentId` | string | Student ID entered by user |
+| `classDate` | string (ISO 8601) | Date of the session |
+| `checkinTime` | string (ISO 8601) | Timestamp of check-in |
+| `checkinLat` | double | GPS latitude at check-in |
+| `checkinLng` | double | GPS longitude at check-in |
+| `previousTopic` | string | Topic from previous class |
+| `expectedTopic` | string | Expected topic today |
+| `moodBefore` | int (1–5) | Mood before class |
+| `finishTime` | string / null | Timestamp of finish |
+| `finishLat` | double / null | GPS latitude at finish |
+| `finishLng` | double / null | GPS longitude at finish |
+| `learnedToday` | string / null | What the student learned |
+| `classFeedback` | string / null | Optional feedback |
 
-Hive local storage (example box: `historyBox`):
+### Hive local box: `checkin_history` (native only)
 
-Each item (simplified summary):
-
-- `studentId` (string)
-- `className` (string)
-- `classDate` (string or DateTime)
-- `moodBefore` (int)
-- `learnedToday` (string, short)
-- (optional) `checkinTime` (string), `finishTime` (string)
+| Field | Type |
+|---|---|
+| `classId` | string |
+| `className` | string |
+| `classDate` | string |
+| `studentId` | string |
+| `moodBefore` | int |
+| `checkinTime` | string |
+| `firestoreDocId` | string |
+| `learnedToday` | string / null |
 
 ## Tech Stack
 
-- **Framework:** Flutter
-- **Platforms:** Android, Web
-- **Backend / BaaS:** Firebase
-  - Cloud Firestore for main data storage
-- **Local storage:** Hive for simple history caching and preferences 
-- **Location:** Geolocator (or equivalent) for GPS location
+| Layer | Technology |
+|---|---|
+| Framework | Flutter 3.24.3 |
+| Platforms | Android, Web |
+| State Management | Provider |
+| Routing | go_router |
+| Backend / BaaS | Firebase Firestore |
+| Local Cache | Hive (native only) |
+| Location | Geolocator 10.x |
+| Hosting | Firebase Hosting |
 
+## Deployment
+
+| URL | Description |
+|---|---|
+| `https://my-lab-checkin-app-79.web.app/` | Main app |
+| `https://my-lab-checkin-app-79.web.app/landing` | Landing page |
