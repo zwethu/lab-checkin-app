@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:lab_test_app/core/app_colors.dart';
+import 'package:lab_test_app/core/location_helper.dart';
 import 'package:lab_test_app/models/checkin_hive_model.dart';
 import 'package:lab_test_app/models/class_model.dart';
 import 'package:lab_test_app/providers/checkin_provider.dart';
@@ -48,7 +50,6 @@ class _CheckInPageState extends State<CheckInPage> {
               const SizedBox(height: 4),
               Text('${c.time} • ${c.room}', style: AppTextStyles.subtitle),
               const SizedBox(height: 16),
-
               Text('Student ID', style: AppTextStyles.body),
               const SizedBox(height: 4),
               TextFormField(
@@ -58,10 +59,9 @@ class _CheckInPageState extends State<CheckInPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Required' : null,
+                    v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-
               Text('Previous class topic', style: AppTextStyles.body),
               const SizedBox(height: 4),
               TextFormField(
@@ -71,10 +71,9 @@ class _CheckInPageState extends State<CheckInPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Required' : null,
+                    v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-
               Text('Expected topic today', style: AppTextStyles.body),
               const SizedBox(height: 4),
               TextFormField(
@@ -84,16 +83,14 @@ class _CheckInPageState extends State<CheckInPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Required' : null,
+                    v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-
               Text('Mood before class', style: AppTextStyles.body),
               const SizedBox(height: 4),
               DropdownButtonFormField<int>(
                 value: _mood,
-                decoration:
-                const InputDecoration(border: OutlineInputBorder()),
+                decoration: const InputDecoration(border: OutlineInputBorder()),
                 items: const [
                   DropdownMenuItem(value: 1, child: Text('1 😡 Very negative')),
                   DropdownMenuItem(value: 2, child: Text('2 🙁 Negative')),
@@ -106,21 +103,27 @@ class _CheckInPageState extends State<CheckInPage> {
                 },
               ),
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStatePropertyAll(AppColors.background),
+                  ),
                   onPressed: _isLoading ? null : _onSubmit,
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                      : const Text('Submit Check-in'),
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : const Text(
+                          'Submit Check-in',
+                          style: AppTextStyles.button,
+                        ),
                 ),
               ),
             ],
@@ -136,11 +139,11 @@ class _CheckInPageState extends State<CheckInPage> {
     setState(() => _isLoading = true);
 
     final now = DateTime.now();
-    final classDate =
-    DateTime(now.year, now.month, now.day).toIso8601String();
+    final classDate = DateTime(now.year, now.month, now.day).toIso8601String();
     final checkinTime = now.toIso8601String();
-    const double fakeLat = 18.79; // TODO: replace with Geolocator
-    const double fakeLng = 99.00;
+    final position = await getCurrentLocation();
+    final double checkinLat = position.latitude;
+    final double checkinLng = position.longitude;
     final c = widget.classModel;
 
     try {
@@ -151,8 +154,8 @@ class _CheckInPageState extends State<CheckInPage> {
         studentId: _studentIdController.text.trim(),
         classDate: classDate,
         checkinTime: checkinTime,
-        checkinLat: fakeLat,
-        checkinLng: fakeLng,
+        checkinLat: checkinLat,
+        checkinLng: checkinLng,
         previousTopic: _previousTopicController.text.trim(),
         expectedTopic: _expectedTopicController.text.trim(),
         moodBefore: _mood,
@@ -160,17 +163,17 @@ class _CheckInPageState extends State<CheckInPage> {
 
       // 2) Save to Hive via Provider
       await context.read<CheckinProvider>().addCheckin(
-        CheckinHiveModel(
-          classId: c.id,
-          className: c.name,
-          classDate: classDate,
-          studentId: _studentIdController.text.trim(),
-          moodBefore: _mood,
-          checkinTime: checkinTime,
-          firestoreDocId: docId,
-          learnedToday: null,
-        ),
-      );
+            CheckinHiveModel(
+              classId: c.id,
+              className: c.name,
+              classDate: classDate,
+              studentId: _studentIdController.text.trim(),
+              moodBefore: _mood,
+              checkinTime: checkinTime,
+              firestoreDocId: docId,
+              learnedToday: null,
+            ),
+          );
 
       if (mounted) Navigator.pop(context, true);
     } catch (e) {

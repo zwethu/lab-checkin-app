@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:lab_test_app/core/app_colors.dart';
+import 'package:lab_test_app/core/location_helper.dart';
 import 'package:lab_test_app/models/class_model.dart';
 import 'package:lab_test_app/providers/checkin_provider.dart';
 import 'package:lab_test_app/services/checkin_service.dart';
 import 'package:provider/provider.dart';
 import '../core/app_text_styles.dart';
-
 
 class FinishClassPage extends StatefulWidget {
   final ClassModel classModel;
@@ -45,7 +46,6 @@ class _FinishClassPageState extends State<FinishClassPage> {
               const SizedBox(height: 4),
               Text('${c.time} • ${c.room}', style: AppTextStyles.subtitle),
               const SizedBox(height: 16),
-
               Text('What I learned today', style: AppTextStyles.body),
               const SizedBox(height: 4),
               TextFormField(
@@ -56,10 +56,9 @@ class _FinishClassPageState extends State<FinishClassPage> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) =>
-                v == null || v.trim().isEmpty ? 'Required' : null,
+                    v == null || v.trim().isEmpty ? 'Required' : null,
               ),
               const SizedBox(height: 16),
-
               Text('Feedback about the class or instructor',
                   style: AppTextStyles.body),
               const SizedBox(height: 4),
@@ -72,21 +71,27 @@ class _FinishClassPageState extends State<FinishClassPage> {
                 ),
               ),
               const SizedBox(height: 24),
-
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
+                  style: ButtonStyle(
+                    backgroundColor:
+                        WidgetStatePropertyAll(AppColors.background),
+                  ),
                   onPressed: _isLoading ? null : _onSubmit,
                   child: _isLoading
                       ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  )
-                      : const Text('Submit & Finish'),
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            color: Colors.white,
+                          ),
+                        )
+                      : Text(
+                          'Submit & Finish',
+                          style: AppTextStyles.button,
+                        ),
                 ),
               ),
             ],
@@ -113,16 +118,17 @@ class _FinishClassPageState extends State<FinishClassPage> {
     }
 
     final now = DateTime.now();
-    const double fakeLat = 18.79; // TODO: replace with Geolocator
-    const double fakeLng = 99.00;
+    final position = await getCurrentLocation();
+    final double finishLat = position.latitude;
+    final double finishLng = position.longitude;
 
     try {
       // 1) Update Firestore document
       await CheckinService.finishCheckin(
         firestoreDocId: docId,
         finishTime: now.toIso8601String(),
-        finishLat: fakeLat,
-        finishLng: fakeLng,
+        finishLat: finishLat,
+        finishLng: finishLng,
         learnedToday: _learnedTodayController.text.trim(),
         classFeedback: _feedbackController.text.trim().isEmpty
             ? null

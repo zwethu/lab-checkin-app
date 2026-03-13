@@ -1,1 +1,39 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"my-lab-checkin-app-79","appId":"1:201752491845:android:95be7a64875613ee66b02c","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"my-lab-checkin-app-79","configurations":{"android":"1:201752491845:android:95be7a64875613ee66b02c","ios":"1:201752491845:ios:173a13fe942f529466b02c","macos":"1:201752491845:ios:173a13fe942f529466b02c","web":"1:201752491845:web:deffd0aeaeaf861266b02c","windows":"1:201752491845:web:401bcecf09fbb8d066b02c"}}}}}}
+{
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ]
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "my-lab-checkin-app-79",
+          "appId": "1:201752491845:android:95be7a64875613ee66b02c",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "my-lab-checkin-app-79",
+          "configurations": {
+            "android": "1:201752491845:android:95be7a64875613ee66b02c",
+            "ios": "1:201752491845:ios:173a13fe942f529466b02c",
+            "macos": "1:201752491845:ios:173a13fe942f529466b02c",
+            "web": "1:201752491845:web:deffd0aeaeaf861266b02c",
+            "windows": "1:201752491845:web:401bcecf09fbb8d066b02c"
+          }
+        }
+      }
+    }
+  }
+}

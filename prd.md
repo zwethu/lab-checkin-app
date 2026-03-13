@@ -104,6 +104,6 @@ Each item (simplified summary):
 - **Platforms:** Android, Web
 - **Backend / BaaS:** Firebase
   - Cloud Firestore for main data storage
-- **Local storage:** Hive for simple history caching and preferences [web:52][web:58][web:62]
+- **Local storage:** Hive for simple history caching and preferences 
 - **Location:** Geolocator (or equivalent) for GPS location
 

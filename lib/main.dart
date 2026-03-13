@@ -1,12 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:lab_test_app/core/app_router.dart';
 import 'package:lab_test_app/models/checkin_hive_model.dart';
 import 'package:lab_test_app/providers/checkin_provider.dart';
 import 'package:provider/provider.dart';
 import 'core/app_colors.dart';
 import 'firebase_options.dart';
-import 'screens/home_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -30,20 +30,21 @@ class MyApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => CheckinProvider()
         ..fetchClasses()
-        ..loadHistory(),
-      child: MaterialApp(
-        title: 'Smart Class Check-in',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          primaryColor: AppColors.primary,
-          scaffoldBackgroundColor: AppColors.background,
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.primary,
-            foregroundColor: Colors.white,
-          ),
+        ..loadHistory()
+        ..syncFromFirestore(),
+      child: MaterialApp.router(
+      routerConfig: appRouter,
+      title: 'Smart Class Check-in',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primaryColor: AppColors.primary,
+        scaffoldBackgroundColor: AppColors.background,
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.primary,
+          foregroundColor: Colors.white,
         ),
-        home: const HomePage(),
       ),
+    ),
     );
   }
 }
