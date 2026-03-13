@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "201752491845",
+    "project_id": "my-lab-checkin-app-79",
+    "storage_bucket": "my-lab-checkin-app-79.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:201752491845:android:95be7a64875613ee66b02c",
+        "android_client_info": {
+          "package_name": "com.example.lab_test_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCEBIlgw7TteWLvpq2sPUlxpH5GtQ7MjPA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
