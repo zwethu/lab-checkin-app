@@ -7,9 +7,11 @@ import 'package:lab_test_app/providers/checkin_provider.dart';
 import 'package:provider/provider.dart';
 import 'core/app_colors.dart';
 import 'firebase_options.dart';
+import 'package:flutter_web_plugins/url_strategy.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  usePathUrlStrategy();
 
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
@@ -33,7 +35,7 @@ class MyApp extends StatelessWidget {
         ..loadHistory()
         ..syncFromFirestore(),
       child: MaterialApp.router(
-      routerConfig: appRouter,
+      routerConfig: AppRouter.router,
       title: 'Smart Class Check-in',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
